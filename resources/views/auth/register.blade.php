@@ -9,17 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="bg-gray-100 font-sans">
-
-    <nav class="bg-white shadow p-4 flex justify-between items-center">
-        <a href="/">
-            <img src="https://ext.same-assets.com/1078059645/2266794428.png" alt="TTGShop Logo" class="h-10">
-        </a>
-        <div class="space-x-4">
-            <a href="{{ route('login') }}" class="text-blue-600 hover:underline">Đăng nhập</a>
-            <a href="{{ route('register') }}" class="text-blue-600 hover:underline">Đăng ký</a>
-        </div>
-    </nav>
-
+    @include('layouts.partials.header')
     {{-- SweetAlert2 thông báo --}}
     @if(session('success'))
         <script>
@@ -122,7 +112,7 @@
             </form>
         </div>
     </main>
-
+    @include('layouts.partials.header')
     <script>
         function toggleVisibility(inputId, iconId) {
             const input = document.getElementById(inputId);

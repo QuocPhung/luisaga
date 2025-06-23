@@ -18,9 +18,24 @@ class SaleController extends Controller
 
     public function create()
     {
-        $products = Product::where('status', 1)->get();
+        $now = now();
+    
+        $excludedProductIds = \App\Models\Sale::where('end_date', '>=', now())
+            ->with('products:id')
+            ->get()
+            ->pluck('products')
+            ->flatten()
+            ->pluck('id')
+            ->unique();
+
+        // Lấy sản phẩm chưa nằm trong khuyến mãi đang chạy
+        $products = Product::where('status', 1)
+            ->whereNotIn('id', $excludedProductIds)
+            ->get();
+
         return view('admin.sales.create', compact('products'));
     }
+    
 
     public function store(Request $request)
     {
@@ -39,24 +54,49 @@ class SaleController extends Controller
             'product_ids' => 'required|array',
             'product_ids.*' => 'exists:products,id',
         ]);
-
+    
+        // Kiểm tra nếu bất kỳ sản phẩm nào đã nằm trong chương trình khuyến mãi đang diễn ra
+        $conflict = Product::whereIn('id', $request->product_ids)
+            ->whereHas('sales', function ($q) {
+                $q->where('end_date', '>=', now());
+            })
+            ->pluck('name');
+    
+        if ($conflict->count()) {
+            return back()->withErrors([
+                'product_ids' => 'Một số sản phẩm đã thuộc khuyến mãi khác: ' . $conflict->implode(', ')
+            ])->withInput();
+        }
+    
         DB::transaction(function () use ($request) {
             $sale = Sale::create($request->only([
                 'name', 'discount_type', 'discount_value', 'start_date', 'end_date', 'status'
             ]));
-
+    
             $sale->products()->attach($request->product_ids);
         });
-
+    
         return redirect()->route('admin.sales.index')->with('success', 'Tạo khuyến mãi thành công!');
-    }
+    }    
 
     public function edit(Sale $sale)
     {
-        $products = Product::where('status', 1)->get();
+        $now = now();
+    
+        // Cho phép sản phẩm đang trong chính sale này, nhưng không lấy những cái đang sale ở chương trình khác
+        $products = Product::where('status', 1)
+            ->where(function ($query) use ($sale, $now) {
+                $query->whereDoesntHave('sales', function ($q) use ($sale, $now) {
+                    $q->where('sales.id', '!=', $sale->id)
+                      ->where('end_date', '>=', $now);
+                });
+            })
+            ->get();
+    
         $selectedProducts = $sale->products->pluck('id')->toArray();
         return view('admin.sales.edit', compact('sale', 'products', 'selectedProducts'));
     }
+    
 
     public function update(Request $request, Sale $sale)
     {
@@ -75,7 +115,19 @@ class SaleController extends Controller
             'product_ids' => 'required|array',
             'product_ids.*' => 'exists:products,id',
         ]);
-
+        $conflict = Product::whereIn('id', $request->product_ids)
+        ->whereHas('sales', function ($q) use ($sale) {
+            $q->where('sales.id', '!=', $sale->id)
+              ->where('end_date', '>=', now());
+        })
+        ->pluck('name');
+    
+        if ($conflict->count()) {
+            return back()->withErrors([
+                'product_ids' => 'Một số sản phẩm đã thuộc khuyến mãi khác: ' . $conflict->implode(', ')
+            ])->withInput();
+        }
+        
         DB::transaction(function () use ($request, $sale) {
             $sale->update($request->only([
                 'name', 'discount_type', 'discount_value', 'start_date', 'end_date', 'status'

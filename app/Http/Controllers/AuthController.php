@@ -38,35 +38,62 @@ class AuthController extends Controller
         ]);
     
         // 3. Gán role mặc định (nếu dùng bảng trung gian role_user)
-        $user->roles()->attach(10); // userMng chẳng hạn
+        $user->roles()->attach(10); // user chẳng hạn
     
         // 4. Đăng nhập người dùng
         Auth::login($user, $request->has('remember')); // remember = true nếu có checkbox
     
         // 5. Chuyển hướng
-        return redirect()->route('index')->with('success', 'Đăng ký thành công!'); // redirect đến trang chính
+        return redirect()->route('home')->with('success', 'Đăng ký thành công!'); // redirect đến trang chính
     }
-    
     
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        $credentials = [
+            'email' => $request->get('email'),
+            'password' => $request->get('password'),
+        ];
     
         if (Auth::attempt($credentials, $request->has('remember'))) {
             $user = Auth::user();
     
-            // Nếu có vai trò admin, productMng, v.v...
-            if ($user->hasAnyRole(['admin', 'productMng', 'categoryMng', 'orderMng', 'bannerMng', 'userMng'])) {
-                return redirect()->route('admin.dashboard'); // hoặc route bạn đặt
+            // GỘP cart chứ không ghi đè
+            if ($request->has('cart_items')) {
+                $cart = \App\Models\Cart::firstOrCreate(['user_id' => $user->id]);
+    
+                foreach ($request->cart_items as $item) {
+                    $existing = $cart->items()->where('product_id', $item['product_id'])->first();
+    
+                    if ($existing) {
+                        $existing->increment('quantity', $item['quantity']);
+                    } else {
+                        $cart->items()->create([
+                            'product_id' => $item['product_id'],
+                            'quantity' => $item['quantity'],
+                        ]);
+                    }
+                }
             }
-
-            // Nếu chỉ là user bình thường
-            return redirect()->route('index'); // trang chủ
+    
+            // Trả JSON nếu là request từ JS
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'Đăng nhập thành công', 'redirect' => route('cart.index')]);
+            }
+    
+            // Nếu là quản trị viên
+            if ($user->hasAnyRole(['admin', 'productMng', 'categoryMng', 'orderMng', 'bannerMng', 'userMng'])) {
+                return redirect()->route('admin.dashboard');
+            }
+    
+            return redirect()->route('home');
+        }
+    
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Email hoặc mật khẩu không đúng'], 401);
         }
     
         return back()->with('error', 'Email hoặc mật khẩu không đúng');
-    }
-    
+    }    
 
     public function logout(Request $request) {
         Auth::logout();

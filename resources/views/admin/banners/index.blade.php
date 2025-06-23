@@ -1,7 +1,15 @@
 @extends('admin.layout')
 
 @section('content')
+@section('title', 'Quản lý Banner')
+@can('manage-banners')
+
+{{-- Thông báo thành công --}}
 <div class="container mx-auto p-6">
+    <a href="{{ route('admin.dashboard') }}"
+           class="bg-green-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Quay Lại
+    </a>
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">Danh sách banner</h2>
         <a href="{{ route('admin.banners.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Thêm</a>
@@ -52,4 +60,7 @@
         </tbody>
     </table>
 </div>
+@else
+@php abort(403); @endphp
+@endcan
 @endsection

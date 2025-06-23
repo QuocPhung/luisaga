@@ -115,18 +115,28 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        // Kiểm tra xem sản phẩm có đang nằm trong giỏ hàng hoặc đơn hàng không
+        $inCarts = $product->cartItems()->count();
+        $inOrders = $product->orderItems()->count();
+    
+        if ($inCarts > 0 || $inOrders > 0) {
+            return redirect()->route('admin.products.index')
+                ->with('error', 'Không thể xoá sản phẩm vì đang được sử dụng trong giỏ hàng hoặc đơn hàng.');
+        }
+    
+        // Xoá hình ảnh nếu không bị ràng buộc
         $product->load('images');
-
+    
         foreach ($product->images as $img) {
             if (!empty($img->image) && Storage::disk('public')->exists($img->image)) {
                 Storage::disk('public')->delete($img->image);
             }
             $img->delete();
         }
-
+    
         $product->delete();
-
-        return redirect()->route('admin.products.index')->with('success', 'Đã xóa sản phẩm thành công.');
+    
+        return redirect()->route('admin.products.index')->with('success', 'Đã xoá sản phẩm thành công.');
     }
 
     public function deleteImage($img)
@@ -142,4 +152,17 @@ class ProductController extends Controller
         return back()->with('success', 'Đã xóa ảnh sản phẩm.');
     }
     
+    public function search(Request $request)
+    {
+        $query = $request->q;
+
+        $products = Product::where('name', 'like', "%$query%")
+            ->where('status', 1)
+            ->select('id', 'name', 'price')
+            ->limit(20)
+            ->get();
+
+        return response()->json($products);
+    }
+
 }

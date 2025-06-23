@@ -1,6 +1,10 @@
 @extends('admin.layout')
 
 @section('content')
+@section('title', 'Danh sách khuyến mãi')
+@can('manage-sales')
+
+{{-- Thông báo thành công --}}
 <div class="container mx-auto p-6">
     <a href="{{ route('admin.dashboard') }}"
        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4 inline-block">
@@ -85,4 +89,7 @@
         </div>
     </div>
 </div>
+@else
+    @php abort(403); @endphp
+@endcan
 @endsection

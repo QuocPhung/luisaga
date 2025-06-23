@@ -1,6 +1,10 @@
 @extends('admin.layout')
 
 @section('content')
+@section('title', 'Quản lý sản phẩm')
+@can('manage-products')
+
+{{-- Include SweetAlert --}}
 <div class="container mx-auto p-6">
 
     {{-- Flash message --}}
@@ -104,4 +108,7 @@
         </div>
     </div>
 </div>
+@else
+@php abort(403); @endphp
+@endif
 @endsection

@@ -1,6 +1,10 @@
 @extends('admin.layout')
 
 @section('content')
+@section('title', 'Thêm Banner')
+@can('manage-banners')
+
+{{-- Thông báo thành công --}}
 <div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
     <h2 class="text-xl font-bold mb-4">Thêm banner mới</h2>
 
@@ -43,4 +47,7 @@
         </div>
     </form>
 </div>
+@else
+@php abort(403); @endphp
+@endcan
 @endsection

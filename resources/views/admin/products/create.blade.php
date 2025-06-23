@@ -1,6 +1,11 @@
 @extends('admin.layout')
 
 @section('content')
+@section('title', 'Thêm sản phẩm')
+@can('manage-products')
+
+{{-- Thông báo thành công --}}
+
 <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
     <h2 class="text-xl font-bold mb-6">Thêm sản phẩm</h2>
 
@@ -62,16 +67,19 @@
             <x-forms.tinymce-editor name="description" />
         </div>
 
-        {{-- Ảnh đại diện --}}
-        <div class="mb-4">
-            <label class="block font-medium mb-1">Ảnh đại diện (thumbnail)</label>
-            <input type="file" name="thumbnail" accept="image/*" class="w-full border p-2 rounded">
+        <div class="mt-6">
+            <label class="block font-medium">Ảnh mô tả</label>
+            <input type="file" name="images[mo-ta][]" multiple accept="image/*" class="w-full border p-2 rounded mt-1">
         </div>
 
-        {{-- Ảnh mô tả (nhiều ảnh) --}}
-        <div class="mb-4">
-            <label class="block font-medium">Ảnh chi tiết (có thể chọn nhiều)</label>
-            <input type="file" name="images[]" accept="image/*" multiple class="w-full border p-2 rounded">
+        <div class="mt-4">
+            <label class="block font-medium">Ảnh kỹ thuật</label>
+            <input type="file" name="images[ky-thuat][]" multiple accept="image/*" class="w-full border p-2 rounded mt-1">
+        </div>
+
+        <div class="mt-4">
+            <label class="block font-medium">Ảnh thực tế</label>
+            <input type="file" name="images[thuc-te][]" multiple accept="image/*" class="w-full border p-2 rounded mt-1">
         </div>
 
         {{-- Thông số kỹ thuật --}}
@@ -93,6 +101,9 @@
         </div>
     </form>
 </div>
+@else
+@php abort(403); @endphp
+@endcan
 @endsection
 
 @section('scripts')

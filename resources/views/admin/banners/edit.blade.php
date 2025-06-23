@@ -1,7 +1,15 @@
 @extends('admin.layout')
 
 @section('content')
+@section('title', 'Cập nhật banner')
+@can('manage-banners')
+
+{{-- Thông báo thành công --}}
 <div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
+<a href="{{ route('admin.dashboard') }}"
+           class="bg-green-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Quay Lại
+    </a>
     <h2 class="text-xl font-bold mb-4">Cập nhật banner</h2>
 
     <form action="{{ route('admin.banners.update', $banner->id) }}" method="POST" enctype="multipart/form-data">
@@ -49,4 +57,7 @@
         </div>
     </form>
 </div>
+@else
+@php abort(403); @endphp
+@endcan
 @endsection

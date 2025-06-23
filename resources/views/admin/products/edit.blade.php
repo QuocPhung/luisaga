@@ -1,6 +1,10 @@
 @extends('admin.layout')
 
 @section('content')
+@section('title', 'Cập nhật sản phẩm')
+@can('manage-products')
+
+{{-- Thông báo thành công --}}
 <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
     <h2 class="text-xl font-bold mb-4">Cập nhật sản phẩm</h2>
 
@@ -136,4 +140,7 @@
         </div>
     </form>
 </div>
+@else
+@php abort(403); @endphp
+@endcan
 @endsection

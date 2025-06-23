@@ -1,6 +1,10 @@
 @extends('admin.layout')
 
 @section('content')
+@section('title', 'Thêm danh mục')
+@can('manage-categories')
+
+{{-- Thông báo thành công --}}
 <div class="max-w-lg mx-auto bg-white p-6 rounded shadow">
     <h2 class="text-xl font-bold mb-4">Thêm danh mục</h2>
     <form action="{{ route('admin.categories.store') }}" method="POST">
@@ -33,4 +37,7 @@
         <a href="{{ route('admin.categories.index') }}" class="ml-4 text-gray-600 hover:underline">Quay lại</a>
     </form>
 </div>
+@else
+@php abort(403); @endphp
+@endcan
 @endsection

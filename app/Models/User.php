@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Role;
+use App\Models\Cart;
 
 class User extends Authenticatable
 {
@@ -53,4 +55,12 @@ class User extends Authenticatable
     public function hasAnyRole($roles) {
         return $this->roles()->whereIn('name', (array) $roles)->exists();
     }    
+    public function cart()
+    {
+        return $this->hasOne(Cart::class);
+    }
+    public function orders()
+    {
+        return $this->hasMany(\App\Models\Order::class);
+    }
 }

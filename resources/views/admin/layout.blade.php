@@ -21,5 +21,6 @@
         @yield('content')
     </main>
     <x-head.tinymce-config />
+    @yield('scripts')
 </body>
 </html>

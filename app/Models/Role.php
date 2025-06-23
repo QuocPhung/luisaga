@@ -15,4 +15,11 @@ class Role extends Model
     {
         return $this->belongsToMany(User::class, 'role_user'); // Pivot table
     }
+    public function scopeActive($query)
+    {
+        return $query->where('start_date', '<=', now())
+                    ->where('end_date', '>=', now())
+                    ->where('status', true);
+    }
+
 }

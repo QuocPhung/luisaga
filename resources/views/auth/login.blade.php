@@ -7,9 +7,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body class="bg-gray-100 font-[Quicksand]">
-
+    @include('layouts.partials.header')
     <div class="flex justify-center items-center min-h-screen">
         <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
             <h2 class="text-2xl font-semibold text-center mb-6">Đăng nhập tài khoản</h2>
@@ -55,7 +56,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('login.submit') }}" method="POST" class="space-y-4">
+            <form id="login-form" action="{{ route('login.submit') }}" method="POST" class="space-y-4">
                 @csrf
 
                 <input type="email" name="email" placeholder="Email"
@@ -91,9 +92,44 @@
             </form>
         </div>
     </div>
-
+    @include('layouts.partials.footer')
     {{-- Hiển thị/ẩn mật khẩu --}}
     <script>
+            document.querySelector('#login-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const formData = new FormData(form);
+            const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({
+                    email: formData.get('email'),
+                    password: formData.get('password'),
+                    cart_items: cartItems.map(item => ({
+                        product_id: item.id,
+                        quantity: item.quantity
+                    }))
+                }),
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Sai thông tin đăng nhập');
+                return res.json();
+            })
+            .then(data => {
+                localStorage.removeItem('cart');
+                window.location.href = data.redirect || '/';
+            })
+            .catch(err => {
+                alert(err.message);
+            });
+        });
         function togglePassword() {
             const input = document.getElementById("password");
             const icon = document.getElementById("eyeIcon");
